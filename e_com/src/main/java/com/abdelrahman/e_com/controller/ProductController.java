@@ -20,6 +20,8 @@ import com.abdelrahman.e_com.model.Product;
 import com.abdelrahman.e_com.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -93,7 +95,7 @@ public class ProductController {
 
     @DeleteMapping("product/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable int id){
-         Product product = productService.getProductById(id).orElse(null);
+        Product product = productService.getProductById(id).orElse(null);
         if (product != null) {
            productService.deleteProduct(id);
            return new ResponseEntity<>("Deleted", HttpStatus.OK);
@@ -101,4 +103,13 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+
+    @GetMapping("/products/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
+        List<Product> products = productService.searchProducts(keyword);
+        System.out.println("search with" + keyword);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+    
 }

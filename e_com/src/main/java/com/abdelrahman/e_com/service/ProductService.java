@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.abdelrahman.e_com.model.Product;
@@ -43,6 +44,11 @@ public class ProductService {
 
     public  void deleteProduct(int id) {
         productRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public  List<Product> searchProducts(String keyword) {
+       return productRepository.searchProducts(keyword);
     }
 
 
