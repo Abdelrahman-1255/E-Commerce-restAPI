@@ -76,6 +76,20 @@ public class ProductController {
         }
     }
 
+    @PostMapping("/product/generate-description")
+    public ResponseEntity<String> generateDescription(@RequestParam String productName, @RequestParam String productCategory) {
+        try {
+            String description = productService.generateDescription(productName, productCategory);
+            return new ResponseEntity<>(description, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to generate description: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+
+    }
+
+
     @PutMapping("product/{id}")
     public ResponseEntity<String> updateProduct(@PathVariable int id, @RequestPart("product") String productString, // Accept as String to bypass strict 415 check
             @RequestPart("imageFile") MultipartFile imageFile) {

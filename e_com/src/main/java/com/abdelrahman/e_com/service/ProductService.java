@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,9 @@ import com.abdelrahman.e_com.repository.ProductRepository;
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ChatClient chatClient;;
 
     public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
@@ -49,6 +53,31 @@ public class ProductService {
     @Transactional(readOnly = true)
     public  List<Product> searchProducts(String keyword) {
        return productRepository.searchProducts(keyword);
+    }
+
+    public String generateDescription(String productName, String productCategory) {
+        
+         String descPrompt = String.format("""
+                
+                Write a concise and professional product description for an e-commerce listing.
+                
+                Product Name: %s
+                Category: %s
+                
+                Keep it simple, engaging, and highlight its primary features or benefits.
+                Avoid technical jargon and keep it customer-friendly.
+                Limit the description to 250 characters maximum.
+                
+                """, productName , productCategory );
+
+        String desc = chatClient.prompt(descPrompt)
+                .call()
+                .chatResponse()
+                .getResult()
+                .getOutput()
+                .getText();
+
+        return desc;
     }
 
 
