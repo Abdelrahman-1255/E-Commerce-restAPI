@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.MediaType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.abdelrahman.e_com.model.Product;
 import com.abdelrahman.e_com.service.ProductService;
+import com.abdelrahman.e_com.model.dto.ImageGenerationRequest;
+import com.abdelrahman.e_com.model.dto.ImageGenerationResponse;
+import com.abdelrahman.e_com.service.GeminiImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,11 +31,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+    private final GeminiImageService geminiImageService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, GeminiImageService geminiImageService) {
         this.productService = productService;
+        this.geminiImageService = geminiImageService;
     }
 
     @GetMapping("/products")
@@ -84,11 +88,21 @@ public class ProductController {
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to generate description: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-
-
     }
-
+    
+    @PostMapping("/product/generate-image")
+    public ResponseEntity<?> generateImage(@RequestBody ImageGenerationRequest request) {
+        try {
+            ImageGenerationResponse response = geminiImageService.generateProductImage(request.prompt());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>("Image generation failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Image generation failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @PutMapping("product/{id}")
     public ResponseEntity<String> updateProduct(@PathVariable int id, @RequestPart("product") String productString, // Accept as String to bypass strict 415 check
